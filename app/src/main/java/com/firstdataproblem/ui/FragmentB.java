@@ -27,8 +27,6 @@ import retrofit2.Response;
 public class FragmentB  extends Fragment {
 
     private static final String TAG = "Fragment B";
-    private static final String ARG_SUM = "sum";
-    private int sum;
     private static boolean isVisible = true;
     private String json = "";
     private boolean isTransectionDone = true;
@@ -37,7 +35,6 @@ public class FragmentB  extends Fragment {
         FragmentB fragment = new FragmentB();
         return fragment;
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -53,6 +50,27 @@ public class FragmentB  extends Fragment {
         },10000);
 
         return view;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setVisible(true);
+        if (isVisible && !isTransectionDone){
+            callFragmentC();
+        }
+    }
+
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        setVisible(false);
+    }
+
+    private void setVisible(boolean b) {
+        isVisible = b;
     }
     private void loadData() {
 
@@ -93,27 +111,6 @@ public class FragmentB  extends Fragment {
             FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
             fragmentManager.beginTransaction().add(R.id.frame_container, fragment).addToBackStack("FragmentB").commit();
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        setVisible(true);
-        if (isVisible && !isTransectionDone){
-            callFragmentC();
-        }
-    }
-
-
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        setVisible(false);
-    }
-
-    private void setVisible(boolean b) {
-        isVisible = b;
     }
 
 }
