@@ -1,7 +1,15 @@
-package com.firstdataproblem.ui;
+package com.firstdataproblem.extra;
 
+/**
+ * Created by Avdhesh AKhani on 12/5/2016.
+ */
+
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
@@ -10,29 +18,26 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.firstdataproblem.R;
-import com.firstdataproblem.rest.ApiClient;
-import com.firstdataproblem.rest.ApiInterface;
+import com.firstdataproblem.ui.FragmentC;
 
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * Created by Avdhesh AKhani on 12/2/2016.
  */
 
-public class FragmentB  extends Fragment {
+public class FragmentE  extends Fragment {
 
-    private static final String TAG = "Fragment B";
+    private static final String TAG = "Fragment E";
     private static boolean isVisible = true;
     private String json = "";
     private boolean isTransectionDone = true;
 
-    public static FragmentB newInstance() {
-        FragmentB fragment = new FragmentB();
+    //Service
+    CheckoutService checkoutService;
+    boolean serviceBound = false;
+
+    public static FragmentE newInstance() {
+        FragmentE fragment = new FragmentE();
         return fragment;
     }
 
@@ -42,12 +47,36 @@ public class FragmentB  extends Fragment {
 
         Log.e(TAG, "In Fragment B");
         Log.e(TAG, "Waiting for 5 Seconds before network call");
+
+
+        Thread t = new Thread(){
+            public void run(){
+
+                Intent intent =  new Intent(getActivity(), CheckoutService.class);
+                getActivity().startService(intent);
+                getActivity().bindService(intent,mServiceConnection, Context.BIND_IMPORTANT);
+
+                checkoutService.getJson();
+            }
+        };
+        t.start();
+
+/*
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                loadData();
+                //      loadData();
+
+                Intent intent =  new Intent(getActivity(), CheckoutService.class);
+                getActivity().startService(intent);
+                getActivity().bindService(intent,mServiceConnection,Context.BIND_IMPORTANT);
+                checkoutService.getJson();
+
             }
         },10000);
+*/
+
 
         return view;
     }
@@ -69,9 +98,28 @@ public class FragmentB  extends Fragment {
         setVisible(false);
     }
 
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (serviceBound){
+            getActivity().unbindService(mServiceConnection);
+            serviceBound = false;
+        }
+    }
+
     private void setVisible(boolean b) {
         isVisible = b;
     }
+
+/*
     private void loadData() {
 
         ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
@@ -103,6 +151,7 @@ public class FragmentB  extends Fragment {
             }
         });
     }
+*/
 
 
     private void callFragmentC() {
@@ -112,5 +161,19 @@ public class FragmentB  extends Fragment {
             fragmentManager.beginTransaction().add(R.id.frame_container, fragment).addToBackStack("FragmentB").commit();
         }
     }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            CheckoutService.CheckoutBinder binder = (CheckoutService.CheckoutBinder) iBinder;
+            checkoutService = binder.getService();
+            serviceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            serviceBound = false;
+        }
+    };
 
 }
